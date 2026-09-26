@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NST Studio — Neural Style Transfer</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,450;9..144,600&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="bg-glow bg-glow--gold"></div>
+  <div class="bg-glow bg-glow--teal"></div>
+  <div class="grain"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand__mark">✦</span>
+      <span class="brand__name">NST Studio</span>
+    </div>
+    <div class="status" id="apiStatus">
+      <span class="status__dot"></span>
+      <span class="status__text">connecting…</span>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ HERO / STUDIO PANEL ============ -->
+    <section class="hero">
+      <div class="hero__copy">
+        <h1 class="hero__title">
+          Sculpt a photograph<br/>into any painted style.
+        </h1>
+        <p class="hero__sub">
+          Drop a content photo and a style reference. A VGG19 feature extractor and
+          an L‑BFGS optimizer reshape the pixels, step by step, until one image
+          carries the structure of the first and the texture of the second.
+        </p>
+        <p class="hero__byline">vgg19 feature extraction · gram‑matrix style loss · l‑bfgs pixel optimization</p>
+      </div>
+
+      <div class="studio" id="studio">
+
+        <div class="studio__uploads">
+
+          <label class="dropzone dropzone--content" id="contentDrop" for="contentInput">
+            <input type="file" id="contentInput" accept="image/*" hidden />
+            <div class="dropzone__empty">
+              <div class="dropzone__icon">◧</div>
+              <div class="dropzone__label">Content</div>
+              <div class="dropzone__hint">Drop a photo, or click to browse</div>
+            </div>
+            <img class="dropzone__preview" id="contentPreview" alt="Content preview" hidden />
+            <button class="dropzone__clear" id="contentClear" type="button" hidden aria-label="Remove content image">✕</button>
+          </label>
+
+          <div class="studio__merge" aria-hidden="true">
+            <div class="merge__glyph" id="mergeGlyph">✦</div>
+          </div>
+
+          <label class="dropzone dropzone--style" id="styleDrop" for="styleInput">
+            <input type="file" id="styleInput" accept="image/*" hidden />
+            <div class="dropzone__empty">
+              <div class="dropzone__icon">◈</div>
+              <div class="dropzone__label">Style</div>
+              <div class="dropzone__hint">Drop a painting or texture</div>
+            </div>
+            <img class="dropzone__preview" id="stylePreview" alt="Style preview" hidden />
+            <button class="dropzone__clear" id="styleClear" type="button" hidden aria-label="Remove style image">✕</button>
+          </label>
+
+        </div>
+
+        <div class="studio__controls">
+
+          <div class="control control--slider">
+            <div class="control__row">
+              <label for="strengthSlider">Style strength</label>
+              <span class="control__value" id="strengthValue">65</span>
+            </div>
+            <input type="range" id="strengthSlider" min="0" max="100" value="65" step="1" />
+            <div class="control__scale">
+              <span>keep content</span><span>full style</span>
+            </div>
+          </div>
+
+          <details class="control control--advanced">
+            <summary>Advanced settings</summary>
+            <div class="control__grid">
+              <div class="control__field">
+                <label for="sizeSelect">Resolution</label>
+                <select id="sizeSelect">
+                  <option value="256">256 px · fastest</option>
+                  <option value="384" selected>384 px · balanced</option>
+                  <option value="512">512 px · detailed</option>
+                  <option value="768">768 px · slow</option>
+                </select>
+              </div>
+              <div class="control__field">
+                <label for="stepsSelect">Optimization steps</label>
+                <select id="stepsSelect">
+                  <option value="100">100 · quick preview</option>
+                  <option value="200" selected>200 · standard</option>
+                  <option value="300">300 · refined</option>
+                  <option value="500">500 · maximum</option>
+                </select>
+              </div>
+            </div>
+          </details>
+
+          <button class="generate-btn" id="generateBtn" disabled>
+            <span class="generate-btn__label">Generate</span>
+            <span class="generate-btn__arrow">▸</span>
+          </button>
+          <p class="control__note" id="formNote">Add a content and a style image to begin.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RESULT PANEL ============ -->
+    <section class="result" id="resultSection" hidden>
+
+      <div class="result__head">
+        <h2>Result</h2>
+        <div class="view-toggle" id="viewToggle">
+          <button class="view-toggle__btn is-active" data-view="result">Result</button>
+          <button class="view-toggle__btn" data-view="compare">Before / After</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+
+        <!-- Loading state -->
+        <div class="loading" id="loadingState" hidden>
+          <div class="loading__ring"><div></div><div></div><div></div></div>
+          <p class="loading__stage" id="loadingStage">Warming up VGG19…</p>
+          <div class="loading__bar"><div class="loading__bar-fill" id="progressFill"></div></div>
+          <p class="loading__meta" id="loadingMeta">step 0 / 0</p>
+        </div>
+
+        <!-- Single result view -->
+        <div class="canvas-single" id="canvasSingle" hidden>
+          <img id="resultImage" alt="Stylized result" />
+          <button class="fullscreen-btn" id="fullscreenBtn" aria-label="Open fullscreen">⤢</button>
+        </div>
+
+        <!-- Before / after compare view -->
+        <div class="canvas-compare" id="canvasCompare" hidden>
+          <img class="compare__base" id="compareAfter" alt="After" />
+          <div class="compare__clip" id="compareClip">
+            <img class="compare__base" id="compareBefore" alt="Before" />
+          </div>
+          <div class="compare__handle" id="compareHandle">
+            <div class="compare__handle-line"></div>
+            <div class="compare__handle-grip">⇔</div>
+          </div>
+          <span class="compare__tag compare__tag--before">Content</span>
+          <span class="compare__tag compare__tag--after">Result</span>
+        </div>
+
+      </div>
+
+      <div class="result__actions" id="resultActions" hidden>
+        <button class="action-btn action-btn--ghost" id="regenerateBtn">↻ Generate again</button>
+        <a class="action-btn action-btn--solid" id="downloadBtn" download="nst-studio-result.png">⬇ Download</a>
+      </div>
+
+      <p class="error-msg" id="errorMsg" hidden></p>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    Runs on VGG19 + L‑BFGS pixel optimization, served from your own FastAPI backend.
+  </footer>
+
+  <!-- Fullscreen lightbox -->
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox__close" id="lightboxClose" aria-label="Close fullscreen">✕</button>
+    <img id="lightboxImage" alt="Stylized result, fullscreen" />
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
