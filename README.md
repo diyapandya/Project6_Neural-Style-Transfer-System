@@ -1,6 +1,7 @@
+<div align = "center">
 
 # Neural Style Transfer System
-<div align="center">
+
     
 ### Transform Photographs into Artistic Images with Deep Learning
 
@@ -53,6 +54,12 @@ A web interface lets users upload images, adjust style strength and optimization
 | **L-BFGS Optimization** | Iteratively optimize the generated image |
 ---
 
+## System Architecture
+
+The following diagram illustrates the complete workflow of the Neural Style Transfer System.
+
+![Neural Style Transfer Workflow](/NST%20System%20Architecture.png)
+
 ## Architecture
 
 The system has three main parts:
@@ -61,28 +68,6 @@ The system has three main parts:
 2. **FastAPI Backend:** Validates uploaded images, creates background jobs, exposes API endpoints, and serves the frontend.
 3. **NST Engine:** Extracts VGG19 features, computes content and style losses, and optimizes the generated image using L-BFGS.
 
-### Neural Style Transfer Workflow
-
-```mermaid
-flowchart TD
-    A[Upload Content and Style Images] --> B[Image Preprocessing]
-    B --> C[Pretrained VGG19]
-    C --> D[Feature Extraction]
-    D --> E[Content Features]
-    D --> F[Style Features]
-    E --> G[Content Loss]
-    F --> H[Gram Matrix]
-    H --> I[Style Loss]
-    G --> J[Combined Loss]
-    I --> J
-    J --> K[L-BFGS Optimization]
-    K --> L{Optimization Complete?}
-    L -- No --> K
-    L -- Yes --> M[Generated Stylized Image]
-    M --> N[Preview and Download]
-```
-
----
 
 ## Tech Stack
 
@@ -202,21 +187,6 @@ Image optimization can take several seconds or minutes depending on resolution, 
 
 The endpoint returns a unique `job_id`, which is used to monitor the generation process and retrieve the result.
 
-## Roadmap
-
-- [x] Implement optimization-based Neural Style Transfer in a Jupyter notebook
-- [x] Extract content and style features using pretrained VGG19
-- [x] Implement Gram Matrix-based style representation
-- [x] Calculate content loss and style loss
-- [x] Optimize the generated image using L-BFGS
-- [x] Refactor the NST implementation into a reusable Python module
-- [x] Develop FastAPI backend endpoints for image generation
-- [x] Run generation as a background job
-- [x] Report optimization progress to the frontend
-- [x] Build an interactive frontend for image uploads and generation settings
-- [x] Add before-and-after comparison, fullscreen preview, and PNG download
-
----
 
 ## Developer
 
