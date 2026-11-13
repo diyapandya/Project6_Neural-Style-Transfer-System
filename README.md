@@ -1,6 +1,7 @@
 
 # Neural Style Transfer System
 <div align="center">
+    
 ### Transform Photographs into Artistic Images with Deep Learning
 
 A web-based **Neural Style Transfer (NST)** application that combines the content of one image with the artistic style of another using a pretrained **VGG19 Convolutional Neural Network**, Gram Matrix-based style loss, and L-BFGS optimization.
