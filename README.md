@@ -1,80 +1,240 @@
-# NST Studio
+<div align="center">
+# Neural Style Transfer System
 
-A premium web frontend + FastAPI backend for your Neural Style Transfer notebook
-(VGG19 feature extraction, Gram-matrix style loss, L-BFGS pixel optimization).
+### Transform Photographs into Artistic Images with Deep Learning
 
+A web-based **Neural Style Transfer (NST)** application that combines the content of one image with the artistic style of another using a pretrained **VGG19 Convolutional Neural Network**, Gram Matrix-based style loss, and L-BFGS optimization.
+
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![PyTorch](https://img.shields.io/badge/PyTorch-Deep_Learning-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![VGG19](https://img.shields.io/badge/VGG19-CNN-6A5ACD?style=for-the-badge)](https://pytorch.org/vision/stable/models/generated/torchvision.models.vgg19.html)
+[![JavaScript](https://img.shields.io/badge/JavaScript-Frontend-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+
+---
+
+**One photograph. One artistic reference. A completely new visual creation.**
+
+</div>
+
+---
+
+## The Problem
+
+A photograph may contain the subject and structure we want to preserve, while a painting or another artwork contains colors, textures, and visual patterns we want to reproduce.
+
+Combining these characteristics manually can require substantial image-editing effort. The central challenge is to preserve the original image's content while transferring the artistic appearance of a separate reference image.
+
+## The Solution
+
+The **Neural Style Transfer System** automates this process using deep learning.
+
+Users provide two images:
+
+- **Content Image:** Supplies the objects, structure, and composition.
+- **Style Image:** Supplies the artistic textures, patterns, and visual appearance.
+
+A pretrained VGG19 network extracts visual features from both images. The system calculates content loss and style loss, then uses an L-BFGS optimizer to iteratively update the generated image.
+
+A web interface lets users upload images, adjust style strength and optimization settings, monitor progress, compare the result with the original, and download the generated PNG.
+
+---
+
+## Features
+
+| Feature | Description |
+| --- | --- |
+| **Content Image Upload** | Upload the photograph whose structure should be preserved |
+| **Style Image Upload** | Upload a painting or reference image for artistic style |
+| **VGG19 Feature Extraction** | Extract visual features from a pretrained VGG19 network |
+| **Gram Matrix** | Represent style through correlations between feature maps |
+| **Content and Style Loss** | Balance content preservation with style transfer |
+| **L-BFGS Optimization** | Iteratively optimize the generated image |
+---
+
+## Architecture
+
+The system has three main parts:
+
+1. **Frontend:** Handles image uploads, settings, generation requests, progress display, comparison, and downloads.
+2. **FastAPI Backend:** Validates uploaded images, creates background jobs, exposes API endpoints, and serves the frontend.
+3. **NST Engine:** Extracts VGG19 features, computes content and style losses, and optimizes the generated image using L-BFGS.
+
+### Neural Style Transfer Workflow
+
+```mermaid
+flowchart TD
+    A[Upload Content and Style Images] --> B[Image Preprocessing]
+    B --> C[Pretrained VGG19]
+    C --> D[Feature Extraction]
+    D --> E[Content Features]
+    D --> F[Style Features]
+    E --> G[Content Loss]
+    F --> H[Gram Matrix]
+    H --> I[Style Loss]
+    G --> J[Combined Loss]
+    I --> J
+    J --> K[L-BFGS Optimization]
+    K --> L{Optimization Complete?}
+    L -- No --> K
+    L -- Yes --> M[Generated Stylized Image]
+    M --> N[Preview and Download]
 ```
-nst-studio/
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+| --- | --- |
+| **Programming Language** | Python |
+| **Deep Learning Framework** | PyTorch |
+| **Computer Vision Model** | Pretrained VGG19 |
+| **Style Representation** | Gram Matrix |
+| **Optimization Algorithm** | L-BFGS |
+| **Image Processing** | Pillow (PIL) |
+| **Backend Framework** | FastAPI |
+| **API Server** | Uvicorn |
+| **Data Validation** | Pydantic |
+| **Frontend** | HTML5, CSS3, JavaScript |
+| **API Communication** | Fetch API, REST endpoints |
+
+---
+
+## Project Structure
+
+```text
+Project6_Neural-Style-Transfer-System/
+│
+├── NST.ipynb                  # Original Neural Style Transfer notebook
+│
 ├── backend/
-│   ├── main.py          # FastAPI app: job queue, endpoints, serves the frontend
-│   ├── nst_engine.py     # Your notebook's NST logic, refactored into a reusable module
-│   └── requirements.txt
-└── frontend/
-    ├── index.html
-    ├── styles.css
-    └── app.js
+│   ├── main.py                # FastAPI application and API endpoints
+│   └── nst_engine.py          # Neural Style Transfer engine
+│
+├── frontend/
+│   ├── index.html             # Web application structure
+│   ├── styles.css             # Frontend styling
+│   └── app.js                 # Upload, API, progress, and result handling
+│
+├── requirements.txt           # Python dependencies
+├── .gitignore                 # Ignored files and folders
+└── README.md                  # Project documentation
 ```
 
-## What changed vs. the notebook
+---
 
-The optimization math is untouched — same VGG19 layers (`conv1_1…conv5_1`, content at
-`conv4_2`), the same Gram-matrix style loss, and the same L-BFGS loop. What's new:
+## Getting Started
 
-- It runs on in-memory uploaded images instead of a mounted dataset folder.
-- Progress is reported via a callback after every L-BFGS closure call, so the frontend
-  can show a live progress bar instead of printed loss values.
-- Generation runs as a background job (`POST /api/generate` → poll `GET /api/jobs/{id}`
-  → `GET /api/jobs/{id}/result`) since one run can take anywhere from a few seconds to a
-  few minutes depending on device, resolution, and step count.
+### Installation
 
-## Setup
+1. **Clone the repository**
 
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
+   ```bash
+   git clone https://github.com/diyapandya/Project6_Neural-Style-Transfer-System.git
+   cd Project6_Neural-Style-Transfer-System
+   ```
 
-> **GPU note:** the `torch`/`torchvision` versions pinned in `requirements.txt` are CPU
-> wheels by default. For CUDA, install the matching build from
-> https://pytorch.org/get-started/locally/ **before** running `pip install -r requirements.txt`,
-> or edit the two lines afterward.
+2. **Create a virtual environment**
 
-## Run
+   ```bash
+   python -m venv venv
+   ```
 
-```bash
-cd backend
-uvicorn main:app --reload --port 8000
-```
+3. **Activate the environment**
 
-Open **http://localhost:8000** — the backend serves the frontend directly, so there's
-nothing extra to start. The status pill in the top-right corner confirms the API is live.
+   Windows PowerShell:
 
-The first generation call will be slow while VGG19's pretrained weights download and
-load into memory; subsequent calls reuse the loaded model.
+   ```powershell
+   .\venv\Scripts\Activate.ps1
+   ```
 
-## Using the studio
+4. **Install dependencies**
 
-1. Drop a content photo and a style reference into the two upload panels.
-2. Optionally tune **style strength** (maps to the notebook's style/content loss
-   weighting) and, under **Advanced settings**, resolution and step count. Lower
-   resolution/steps = faster, rougher results; higher = slower, more refined.
-3. Press **Generate**. A live progress bar tracks L-BFGS steps as they complete.
-4. Compare the result against the original with the **Before / After** slider, view it
-   **fullscreen**, **download** the PNG, or **Generate again** with new settings.
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## API reference
+5. **Start the backend**
 
-| Method | Path                       | Purpose                                   |
-|--------|----------------------------|--------------------------------------------|
-| GET    | `/api/health`               | Backend/device check                       |
-| POST   | `/api/generate`             | multipart form: `content_image`, `style_image`, `img_size`, `steps`, `style_strength` → `{job_id}` |
-| GET    | `/api/jobs/{job_id}`        | Poll status/progress                       |
-| GET    | `/api/jobs/{job_id}/result` | Fetch the generated PNG once `status=="done"` |
-| DELETE | `/api/jobs/{job_id}`        | Drop a finished job from memory            |
+   ```bash
+   cd backend
+   uvicorn main:app --reload --port 8000
+   ```
 
-Job state is kept in an in-process dict — fine for local/demo use. For multi-worker
-production deployment, swap it for Redis or a small database and run the NST job in a
-process pool (`ProcessPoolExecutor`) instead of a thread, since PyTorch CPU inference
-doesn't parallelize well across threads in one process.
+6. **Open the application**
+
+   Visit:
+
+   ```text
+   http://localhost:8000
+   ```
+
+   FastAPI serves the frontend, so a separate frontend server is not required.
+
+---
+
+## How the Web Application Works
+
+Image optimization can take several seconds or minutes depending on resolution, step count, and hardware. The backend therefore handles each generation request as a background job.
+
+1. The user uploads content and style images.
+2. The frontend sends the images and selected settings to `POST /api/generate`.
+3. FastAPI validates the uploads and creates a unique job ID.
+4. A background thread runs the NST engine.
+5. The frontend polls the job-status endpoint for progress.
+6. The backend reports status, progress, losses, and elapsed time.
+7. When the job is complete, the frontend fetches the generated PNG.
+8. The user previews, compares, and downloads the result.
+
+---
+
+## API Reference
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| **GET** | `/api/health` | Checks backend availability and reports the selected processing device |
+| **POST** | `/api/generate` | Uploads images, accepts settings, and starts a background job |
+| **GET** | `/api/jobs/{job_id}` | Returns job status, progress, step count, losses, and elapsed time |
+| **GET** | `/api/jobs/{job_id}/result` | Returns the generated PNG when the job is complete |
+| **DELETE** | `/api/jobs/{job_id}` | Removes a job from the in-memory job store |
+
+The endpoint returns a unique `job_id`, which is used to monitor the generation process and retrieve the result.
+
+## Roadmap
+
+- [x] Implement optimization-based Neural Style Transfer in a Jupyter notebook
+- [x] Extract content and style features using pretrained VGG19
+- [x] Implement Gram Matrix-based style representation
+- [x] Calculate content loss and style loss
+- [x] Optimize the generated image using L-BFGS
+- [x] Refactor the NST implementation into a reusable Python module
+- [x] Develop FastAPI backend endpoints for image generation
+- [x] Run generation as a background job
+- [x] Report optimization progress to the frontend
+- [x] Build an interactive frontend for image uploads and generation settings
+- [x] Add before-and-after comparison, fullscreen preview, and PNG download
+
+---
+
+## Developer
+
+Connect with the project developer:
+
+[![GitHub](https://img.shields.io/badge/GitHub-Profile-181717?logo=github&logoColor=white)](https://github.com/diyapandya)
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Profile-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/diya-pandya-399b382b1/)
+
+---
+
+## License
+
+This project is developed for educational and learning purposes.
+
+---
+
+<div align="center">
+
+**Neural Style Transfer System — Where Deep Learning Meets Digital Art.**
+
+</div>
